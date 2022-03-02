@@ -23,3 +23,5 @@ And `extensions.json`:
   "recommendations": ["dbaeumer.vscode-eslint"]
 }
 ```
+
+`npm i -D @typescript-eslint/eslint-plugin`, add `"plugin:@typescript-eslint/recommended"` to `"extends"` in `.eslintrc.json`
