@@ -44,3 +44,11 @@ Create `.prettierrc.json`:
   "singleQuote": true
 }
 ```
+
+Add to `.eslintrc.json`:
+
+```
+"rules": {
+  "eqeqeq": "error"
+}
+```
