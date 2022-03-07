@@ -1,7 +1,8 @@
 ## Setup
 
-1. Use VSCode, make sure the recommended eslint and prettier plugins are installed. Automatic linting should occur when you save!
-2. `npx husky install`. Automatic linting should occur when you commit!
+1. `npm i`
+2. Use VSCode, make sure the recommended eslint and prettier plugins are installed. Automatic linting should occur when you save!
+3. `npx husky install`. Automatic linting should occur when you commit!
 
 ## Commands
 
@@ -87,3 +88,137 @@ module.exports = {
     `npx prettier --write ${filenames.join(' ')}`,
 };
 ```
+
+[Twin styled-components](https://github.com/ben-rogerson/twin.examples/tree/master/next-styled-components):
+
+`npm i styled-components`, `npm i -D twin.macro tailwindcss babel-plugin-macros @types/styled-components`
+
+Create `components/GlobalStyles.tsx`:
+
+```js
+import { createGlobalStyle } from 'styled-components';
+import { GlobalStyles as BaseStyles } from 'twin.macro';
+
+const CustomStyles = createGlobalStyle`
+  body {}
+`;
+
+const GlobalStyles = () => (
+  <>
+    <BaseStyles />
+    <CustomStyles />
+  </>
+);
+
+export default GlobalStyles;
+```
+
+Modify `pages/_app.tsx`:
+
+```js
+import GlobalStyles from 'components/GlobalStyles';
+import type { AppProps } from 'next/app';
+
+const App = ({ Component, pageProps }: AppProps) => (
+  <div>
+    <GlobalStyles />
+    <Component {...pageProps} />
+  </div>
+);
+
+export default App;
+```
+
+Create `babel-plugin-macros.config.js`:
+
+```js
+module.exports = {
+  twin: {
+    preset: 'styled-components',
+    autoCssProp: false,
+  },
+};
+```
+
+Create `.babelrc.js`:
+
+```js
+module.exports = {
+  presets: [['next/babel', { 'preset-react': { runtime: 'automatic' } }]],
+  plugins: [
+    'babel-plugin-macros',
+    ['babel-plugin-styled-components', { ssr: true }],
+  ],
+};
+```
+
+Create `_document.tsx`:
+
+```js
+import Document, { DocumentContext } from 'next/document';
+import { ServerStyleSheet } from 'styled-components';
+
+export default class MyDocument extends Document {
+  static async getInitialProps(ctx: DocumentContext) {
+    const sheet = new ServerStyleSheet();
+    const originalRenderPage = ctx.renderPage;
+    try {
+      ctx.renderPage = () =>
+        originalRenderPage({
+          enhanceApp: (App) => (props) =>
+            sheet.collectStyles(<App {...props} />),
+        });
+      const initialProps = await Document.getInitialProps(ctx);
+
+      return {
+        ...initialProps,
+        styles: (
+          <>
+            {initialProps.styles}
+            {sheet.getStyleElement()}
+          </>
+        ),
+      };
+    } finally {
+      sheet.seal();
+    }
+  }
+}
+```
+
+Typescript does not like twin.macro and styled-components together for some reason, I searched a bit and it seems like creating `types/twin.d.ts` solves the problem (IDK why, from [here](https://github.com/ben-rogerson/twin.examples/blob/master/webpack-styled-components-typescript/types/twin.d.ts)):
+
+```js
+import 'twin.macro';
+import styledImport, { CSSProp, css as cssImport } from 'styled-components';
+
+declare module 'twin.macro' {
+  // The styled and css imports
+  const styled: typeof styledImport;
+  const css: typeof cssImport;
+}
+
+declare module 'react' {
+  // The css prop
+  interface HTMLAttributes<T> extends DOMAttributes<T> {
+    css?: CSSProp;
+    tw?: string;
+  }
+  // The inline svg css prop
+  interface SVGProps<T> extends SVGProps<SVGSVGElement> {
+    css?: CSSProp;
+    tw?: string;
+  }
+}
+
+// The 'as' prop on styled components
+declare global {
+  namespace JSX {
+    interface IntrinsicAttributes<T> extends DOMAttributes<T> {
+      as?: string;
+    }
+  }
+}
+```
+
+Removed `styles/` for our own styling system!
