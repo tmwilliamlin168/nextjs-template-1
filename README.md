@@ -16,6 +16,8 @@ Note that the actual commits in this repo do not exactly reflect these steps in 
 
 `npx create-next-app --ts`
 
+Add `.env` to `.gitignore`.
+
 Add `"baseUrl": "."` to `"compilerOptions"` in `tsconfig.json`
 
 Add to `.eslintrc.json`:
