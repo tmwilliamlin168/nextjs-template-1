@@ -5,6 +5,7 @@
     "prettier"
   ],
   "rules": {
-    "eqeqeq": "error"
+    "eqeqeq": "error",
+    "no-case-declarations": "error"
   }
 }

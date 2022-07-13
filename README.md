@@ -24,7 +24,8 @@ Add to `.eslintrc.json`:
 
 ```json
 "rules": {
-  "eqeqeq": "error"
+  "eqeqeq": "error",
+  "no-case-declarations": "error"
 }
 ```
 
