@@ -66,7 +66,8 @@ Create `.prettierrc.json`:
 
 ```json
 {
-  "singleQuote": true
+  "singleQuote": true,
+  "trailingComma": "all"
 }
 ```
 
